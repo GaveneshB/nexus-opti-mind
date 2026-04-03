@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#f8fafc"/>
+  
+  <!-- Geometric logo mark -->
+  <g transform="translate(10, 10)">
+    <!-- Outer hexagon frame -->
+    <path d="M22 4L34 11L34 33L22 40L10 33L10 11Z" stroke="#3B82F6" stroke-width="1.2" fill="none"/>
+    <!-- Inner diamond -->
+    <path d="M22 12L29 22L22 32L15 22Z" fill="#3B82F6" opacity="0.8"/>
+    <!-- Center dot -->
+    <circle cx="22" cy="22" r="1.5" fill="#0EA5E9"/>
+  </g>
+</svg>
