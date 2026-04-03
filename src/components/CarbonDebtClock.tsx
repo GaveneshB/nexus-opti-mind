@@ -19,13 +19,15 @@ const CarbonDebtClock = () => {
   ];
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Leaf className="h-5 w-5 text-accent" />
+    <div className="glass-card rounded-xl p-5">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="icon-3d-accent">
+          <Leaf className="h-5 w-5 text-accent" strokeWidth={1.5} />
+        </div>
         <h2 className="font-heading font-semibold text-foreground">Carbon Debt Clock</h2>
       </div>
 
-      <div className="text-center py-4 mb-4 rounded-lg bg-muted/30 border border-accent/20 glow-accent">
+      <div className="text-center py-5 mb-4 glass rounded-xl glow-accent">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Live CO₂ Debt Today</p>
         <motion.p
           className="font-mono text-4xl font-bold text-accent text-glow-accent"
@@ -37,7 +39,7 @@ const CarbonDebtClock = () => {
           <span className="text-lg text-accent/70 ml-2">kg</span>
         </motion.p>
         <div className="flex items-center justify-center gap-1 mt-2">
-          <TrendingUp className="h-3 w-3 text-destructive" />
+          <TrendingUp className="h-3 w-3 text-destructive" strokeWidth={1.5} />
           <span className="text-xs text-destructive">+0.48 kg/min</span>
         </div>
       </div>
@@ -53,12 +55,12 @@ const CarbonDebtClock = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.15 }}
-              className="flex items-center justify-between rounded-md bg-muted/30 border border-border p-2"
+              className="flex items-center justify-between glass rounded-lg p-2.5"
             >
               <div className="flex items-center gap-2 text-xs">
                 <span className="font-mono text-foreground">{m.workload}</span>
                 <span className="text-muted-foreground">{m.from}</span>
-                <ArrowRight className="h-3 w-3 text-accent" />
+                <ArrowRight className="h-3 w-3 text-accent" strokeWidth={1.5} />
                 <span className="text-accent">{m.to}</span>
               </div>
               <div className="text-right">
