@@ -11,20 +11,20 @@ const DashboardHeader = () => {
   }, []);
 
   const stats = [
-    { icon: Server, label: "Active Servers", value: "2,847", color: "text-primary" },
-    { icon: Zap, label: "Power Draw", value: "4.2 MW", color: "text-warning" },
-    { icon: Thermometer, label: "Avg Temp", value: "24.7°C", color: "text-accent" },
-    { icon: Activity, label: "CPU Load", value: "67.3%", color: "text-primary" },
+    { icon: Server, label: "Active Servers", value: "2,847", iconClass: "icon-3d-primary", color: "text-primary" },
+    { icon: Zap, label: "Power Draw", value: "4.2 MW", iconClass: "icon-3d-warning", color: "text-warning" },
+    { icon: Thermometer, label: "Avg Temp", value: "24.7°C", iconClass: "icon-3d-accent", color: "text-accent" },
+    { icon: Activity, label: "CPU Load", value: "67.3%", iconClass: "icon-3d-primary", color: "text-primary" },
   ];
 
   return (
-    <header className="border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4">
+    <header className="glass border-b border-border/30 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-accent animate-pulse-glow" />
+            <div className="h-3 w-3 rounded-full bg-accent animate-pulse-glow shadow-[0_0_12px_hsl(155_100%_50%/0.6)]" />
             <h1 className="text-xl font-bold font-heading text-foreground">
-              NEXUS<span className="text-primary">OPS</span>
+              NEXUS<span className="text-primary text-glow-primary">OPS</span>
             </h1>
           </div>
           <span className="text-muted-foreground font-mono text-xs">
@@ -36,18 +36,20 @@ const DashboardHeader = () => {
           {stats.map((stat) => (
             <motion.div
               key={stat.label}
-              className="flex items-center gap-2"
+              className="flex items-center gap-3"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={stat.iconClass}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} strokeWidth={1.5} />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
                 <p className={`font-mono text-sm font-semibold ${stat.color}`}>{stat.value}</p>
               </div>
             </motion.div>
           ))}
-          <div className="border-l border-border pl-4">
+          <div className="border-l border-border/30 pl-4">
             <p className="font-mono text-sm text-primary text-glow-primary">
               {time.toLocaleTimeString("en-US", { hour12: false })}
             </p>

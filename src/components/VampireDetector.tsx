@@ -6,13 +6,15 @@ const VampireDetector = () => {
   const totalDrain = vampireServers.reduce((s, v) => s + v.dailyCost, 0);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="glass-card rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Ghost className="h-5 w-5 text-destructive" />
+        <div className="flex items-center gap-3">
+          <div className="icon-3d-destructive">
+            <Ghost className="h-5 w-5 text-destructive" strokeWidth={1.5} />
+          </div>
           <h2 className="font-heading font-semibold text-foreground">Silent Vampire Detector</h2>
         </div>
-        <div className="rounded-md bg-destructive/10 px-3 py-1 glow-destructive">
+        <div className="glass rounded-lg px-3 py-1.5 glow-destructive">
           <span className="font-mono text-sm text-destructive font-bold">RM {totalDrain.toFixed(1)}/day drain</span>
         </div>
       </div>
@@ -22,21 +24,21 @@ const VampireDetector = () => {
         {rackLayout.map((rack) => (
           <motion.div
             key={rack.id}
-            className={`relative rounded-sm p-1.5 text-center border ${
+            className={`relative rounded-lg p-1.5 text-center ${
               rack.hasVampire
-                ? "border-destructive bg-destructive/20 animate-pulse-glow"
+                ? "glass border-destructive/40 animate-pulse-glow shadow-[0_0_16px_hsl(340_80%_55%/0.3)]"
                 : rack.load > 70
-                ? "border-warning/30 bg-warning/5"
-                : "border-border bg-muted/20"
+                ? "glass border-warning/20"
+                : "glass"
             }`}
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, y: -2 }}
             title={`${rack.id}: ${rack.temp.toFixed(1)}°C | ${rack.load.toFixed(0)}% | ${rack.power.toFixed(0)}W`}
           >
             <span className={`font-mono text-[10px] ${rack.hasVampire ? "text-destructive font-bold" : "text-muted-foreground"}`}>
               {rack.id}
             </span>
             {rack.hasVampire && (
-              <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive animate-ping" />
+              <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-ping shadow-[0_0_8px_hsl(340_80%_55%/0.6)]" />
             )}
           </motion.div>
         ))}
@@ -50,10 +52,12 @@ const VampireDetector = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/5 p-2"
+            className="flex items-center justify-between glass rounded-lg p-2.5 border-destructive/15"
           >
             <div className="flex items-center gap-3">
-              <Ghost className="h-3 w-3 text-destructive" />
+              <div className="icon-3d-destructive !p-1.5">
+                <Ghost className="h-3 w-3 text-destructive" strokeWidth={1.5} />
+              </div>
               <div>
                 <span className="font-mono text-xs text-foreground">{v.id}</span>
                 <span className="text-xs text-muted-foreground ml-2">Rack {v.rack} / Slot {v.slot}</span>
@@ -64,7 +68,7 @@ const VampireDetector = () => {
               <span className="text-muted-foreground">{v.compute}% compute</span>
               <span className="text-muted-foreground">{v.uptime}</span>
               <span className="font-mono text-destructive font-bold flex items-center gap-0.5">
-                <DollarSign className="h-3 w-3" />RM {v.dailyCost}/d
+                <DollarSign className="h-3 w-3" strokeWidth={1.5} />RM {v.dailyCost}/d
               </span>
             </div>
           </motion.div>
