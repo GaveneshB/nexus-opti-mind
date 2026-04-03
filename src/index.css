@@ -87,4 +87,59 @@
   .text-glow-destructive {
     text-shadow: 0 0 10px hsl(340 80% 55% / 0.5);
   }
+  .glass {
+    background: hsl(222 40% 9% / 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(200 20% 90% / 0.08);
+  }
+  .glass-card {
+    background: hsl(222 40% 12% / 0.35);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(200 20% 90% / 0.06);
+    box-shadow: 0 8px 32px hsl(222 47% 4% / 0.4), inset 0 1px 0 hsl(200 20% 90% / 0.05);
+  }
+  .glass-strong {
+    background: hsl(222 40% 14% / 0.5);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid hsl(200 20% 90% / 0.1);
+    box-shadow: 0 8px 32px hsl(222 47% 4% / 0.5), inset 0 1px 0 hsl(200 20% 90% / 0.08);
+  }
+  .icon-3d {
+    background: linear-gradient(135deg, hsl(222 30% 20% / 0.6), hsl(222 30% 10% / 0.8));
+    border: 1px solid hsl(200 20% 90% / 0.1);
+    box-shadow: 0 4px 12px hsl(222 47% 4% / 0.5), inset 0 1px 0 hsl(200 20% 90% / 0.1), inset 0 -1px 0 hsl(222 47% 4% / 0.3);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .icon-3d-primary {
+    background: linear-gradient(135deg, hsl(190 80% 30% / 0.4), hsl(190 100% 20% / 0.6));
+    border: 1px solid hsl(190 100% 50% / 0.2);
+    box-shadow: 0 4px 16px hsl(190 100% 50% / 0.15), inset 0 1px 0 hsl(190 100% 60% / 0.2), inset 0 -1px 0 hsl(190 100% 20% / 0.3);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .icon-3d-accent {
+    background: linear-gradient(135deg, hsl(155 80% 25% / 0.4), hsl(155 100% 15% / 0.6));
+    border: 1px solid hsl(155 100% 50% / 0.2);
+    box-shadow: 0 4px 16px hsl(155 100% 50% / 0.15), inset 0 1px 0 hsl(155 100% 60% / 0.2), inset 0 -1px 0 hsl(155 100% 15% / 0.3);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .icon-3d-warning {
+    background: linear-gradient(135deg, hsl(38 80% 30% / 0.4), hsl(38 100% 20% / 0.6));
+    border: 1px solid hsl(38 100% 50% / 0.2);
+    box-shadow: 0 4px 16px hsl(38 100% 50% / 0.15), inset 0 1px 0 hsl(38 100% 60% / 0.2), inset 0 -1px 0 hsl(38 100% 20% / 0.3);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .icon-3d-destructive {
+    background: linear-gradient(135deg, hsl(340 70% 30% / 0.4), hsl(340 80% 20% / 0.6));
+    border: 1px solid hsl(340 80% 55% / 0.2);
+    box-shadow: 0 4px 16px hsl(340 80% 55% / 0.15), inset 0 1px 0 hsl(340 80% 60% / 0.2), inset 0 -1px 0 hsl(340 80% 20% / 0.3);
+    border-radius: 10px;
+    padding: 8px;
+  }
 }
