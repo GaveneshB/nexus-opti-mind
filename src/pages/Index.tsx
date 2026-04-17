@@ -6,8 +6,7 @@ import CarbonDebtClock from "@/components/CarbonDebtClock";
 import WorkloadForecast from "@/components/WorkloadForecast";
 import VampireDetector from "@/components/VampireDetector";
 import EnergyGenomeMap from "@/components/EnergyGenomeMap";
-import GeminiTester from "@/components/GeminiTester";
-import DatabaseSeeder from "@/components/DatabaseSeeder";
+
 
 const Index = () => {
   const [active, setActive] = useState("overview");
@@ -24,10 +23,7 @@ const Index = () => {
         return <VampireDetector />;
       case "genome":
         return <EnergyGenomeMap />;
-      case "keys":
-        return <GeminiTester />;
-      case "database":
-        return <DatabaseSeeder />;
+
       default:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
