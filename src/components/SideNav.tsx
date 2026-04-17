@@ -1,4 +1,4 @@
-import { AlertTriangle, Leaf, CloudLightning, Ghost, Dna, LayoutDashboard } from "lucide-react";
+import { AlertTriangle, Leaf, CloudLightning, Ghost, Dna, LayoutDashboard, Zap, Database } from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", id: "overview", iconClass: "icon-3d" },
@@ -7,6 +7,8 @@ const navItems = [
   { icon: CloudLightning, label: "Forecast", id: "forecast", iconClass: "icon-3d-primary" },
   { icon: Ghost, label: "Vampires", id: "vampires", iconClass: "icon-3d-destructive" },
   { icon: Dna, label: "Genome", id: "genome", iconClass: "icon-3d-primary" },
+  { icon: Zap, label: "API Keys", id: "keys", iconClass: "icon-3d-primary" },
+  { icon: Database, label: "Database", id: "database", iconClass: "icon-3d-accent" },
 ];
 
 interface SideNavProps {
