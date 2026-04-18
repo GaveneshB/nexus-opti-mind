@@ -8,7 +8,7 @@ export const GEMINI_API_KEYS = [
 ].filter(Boolean) as string[];
 
 const GEMINI_BASE_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 // Round-robin key rotation index (module-level state)
 let _keyIndex = 0;
@@ -42,7 +42,7 @@ export async function testGeminiKey(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 32, temperature: 0 },
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.1 },
       }),
     });
 

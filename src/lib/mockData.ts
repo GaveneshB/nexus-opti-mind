@@ -1,3 +1,5 @@
+import { GenomeWorkload } from "@/types/energy";
+
 // Thermal Regret Engine data
 export const thermalRegrets = [
   { rack: "C3", time: "9:14 PM", regret: 214, currency: "RM", reason: "Over-cooled by 4°C during low-load period", optimal: "Reduce fan speed to 60%, save 2.1 kWh" },
@@ -24,7 +26,7 @@ export const forecasts = [
 ];
 
 // Energy Genome workloads - used as fallback/demo data
-export const genomeWorkloads = [
+export const genomeWorkloads: GenomeWorkload[] = [
   { id: "WL-Alpha", phases: [0.2, 0.8, 1.0, 0.9, 0.6, 0.3, 0.1], type: "ML Training", avgPower: 4200, match: "WL-Gamma", status: "running", efficiency: 87, costPerHour: 12.6 },
   { id: "WL-Beta", phases: [0.1, 0.3, 0.5, 0.5, 0.4, 0.2, 0.1], type: "Data Pipeline", avgPower: 1800, match: "WL-Delta", status: "running", efficiency: 92, costPerHour: 5.4 },
   { id: "WL-Gamma", phases: [0.1, 0.2, 0.3, 0.9, 1.0, 0.7, 0.2], type: "Batch Render", avgPower: 3900, match: "WL-Alpha", status: "scheduled", efficiency: 79, costPerHour: 11.7 },

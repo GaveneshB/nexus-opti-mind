@@ -1,22 +1,67 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
-import { Leaf, TrendingUp, ArrowRight } from "lucide-react";
+import { Leaf, TrendingUp, ArrowRight, Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { geminiGenerate } from "@/lib/gemini";
+import { carbonStore } from "@/lib/carbonStore";
+import { genomeWorkloads } from "@/lib/mockData";
 
 const CarbonDebtClock = () => {
-  const [debt, setDebt] = useState(847.32);
+  const storeState = useSyncExternalStore(carbonStore.subscribe, carbonStore.getSnapshot);
+  const debt = storeState.debt;
+  const ratePerMin = storeState.ratePerMin;
+
+  const [loading, setLoading] = useState(true);
+  const [aiError, setAiError] = useState(false);
+  const [migrations, setMigrations] = useState<{id: string; workload: string; from: string; to: string; savings: string; savingsNum: number; eta: string}[]>([]);
+
+  const handleAcceptMigration = (id: string, savingsNum: number) => {
+      // Apply payment to the global debt store mathematically
+      carbonStore.applySavings(savingsNum);
+      
+      // We also slightly improve the grid mix globally to represent standardizing greener infrastructure 
+      carbonStore.improveGridMix(storeState.gridMix.renewable + 0.05);
+      
+      // Remove it from the active UI
+      setMigrations((prev) => prev.filter(m => m.id !== id));
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDebt((prev) => prev + 0.003 + Math.random() * 0.005);
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
+    const fetchAiMigrations = async () => {
+      setLoading(true);
+      setAiError(false);
+      try {
+        const payloadString = JSON.stringify(genomeWorkloads.map(w => ({ id: w.id, power: w.avgPower, efficiency: w.efficiency })));
+        const prompt = `You are a Reinforcement Learning Optimizer for a datacenter mapping carbon emissions. 
+        Current Grid Mix: ${Math.round(storeState.gridMix.renewable * 100)}% Green. 
+        Active Workloads: ${payloadString}. 
+        Identify the 3 most inefficient or high-power workloads and generate strategic migration moves to renewable grids (like "Sabah Green" or "Hydro-Node-A") to cancel carbon debt. 
+        Output ONLY raw JSON format: [{"id": "uuid1", "workload": "WL-Alpha", "from": "Johor Grid", "to": "Sabah Green", "savings": "12.4 kg", "savingsNum": 12.4, "eta": "6:00 AM"}]. No markdown.`;
+        
+        const result = await geminiGenerate(prompt);
+        
+        const cleanedResult = result.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedResult);
+        
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMigrations(parsed);
+        } else {
+          throw new Error("Invalid output format from Gemini");
+        }
+      } catch (err) {
+        console.error("AI Generation failed:", err);
+        setAiError(true);
+        setMigrations([
+          { id: "1", workload: "WL-Gamma", from: "Johor Grid", to: "Sabah Green", savings: "12.4 kg", savingsNum: 12.4, eta: "6:00 AM" },
+          { id: "2", workload: "WL-Alpha", from: "Johor Grid", to: "Sabah Green", savings: "8.7 kg", savingsNum: 8.7, eta: "6:15 AM" },
+          { id: "3", workload: "WL-Epsilon", from: "Selangor Grid", to: "Sabah Green", savings: "15.2 kg", savingsNum: 15.2, eta: "6:30 AM" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const migrations = [
-    { workload: "ML-Train-07", from: "Johor Grid", to: "Sabah Green", savings: "12.4 kg", eta: "6:00 AM" },
-    { workload: "ETL-Batch-12", from: "Johor Grid", to: "Sabah Green", savings: "8.7 kg", eta: "6:15 AM" },
-    { workload: "Render-Q3", from: "Selangor Grid", to: "Sabah Green", savings: "15.2 kg", eta: "6:30 AM" },
-  ];
+    fetchAiMigrations();
+  }, []);
 
   return (
     <div className="glass-card rounded-xl p-5">
@@ -24,7 +69,22 @@ const CarbonDebtClock = () => {
         <div className="icon-3d-accent">
           <Leaf className="h-5 w-5 text-accent" strokeWidth={1.5} />
         </div>
-        <h2 className="font-heading font-semibold text-foreground">Carbon Debt Clock</h2>
+        <div className="flex items-center justify-between w-full">
+            <h2 className="font-heading font-semibold text-foreground">Carbon Debt Clock</h2>
+            {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : aiError ? (
+                <div className="flex items-center gap-1 bg-destructive/10 text-destructive text-[10px] px-2 py-0.5 rounded-full" title="Using Fallback Data (API Key invalid or rate limited)">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>Mock Data</span>
+                </div>
+            ) : (
+                <div className="flex items-center gap-1 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full" title="Generated Live via Gemini 1.5 Flash">
+                    <Sparkles className="h-3 w-3" />
+                    <span>AI Generated</span>
+                </div>
+            )}
+        </div>
       </div>
 
       <div className="text-center py-5 mb-4 glass rounded-xl glow-accent">
@@ -40,18 +100,18 @@ const CarbonDebtClock = () => {
         </motion.p>
         <div className="flex items-center justify-center gap-1 mt-2">
           <TrendingUp className="h-3 w-3 text-destructive" strokeWidth={1.5} />
-          <span className="text-xs text-destructive">+0.48 kg/min</span>
+          <span className="text-xs text-destructive">+{ratePerMin.toFixed(2)} kg/min</span>
         </div>
       </div>
 
       <div>
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">
-          Recommended Migrations
+          {loading ? "Optimizing Layout..." : "AI Recommended Migrations"}
         </p>
         <div className="space-y-2">
           {migrations.map((m, i) => (
             <motion.div
-              key={m.workload}
+              key={`${m.workload}-${i}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.15 }}
@@ -59,13 +119,22 @@ const CarbonDebtClock = () => {
             >
               <div className="flex items-center gap-2 text-xs">
                 <span className="font-mono text-foreground">{m.workload}</span>
-                <span className="text-muted-foreground">{m.from}</span>
+                <span className="text-muted-foreground hidden sm:inline">{m.from}</span>
                 <ArrowRight className="h-3 w-3 text-accent" strokeWidth={1.5} />
-                <span className="text-accent">{m.to}</span>
+                <span className="text-accent hidden sm:inline">{m.to}</span>
               </div>
-              <div className="text-right">
-                <span className="font-mono text-xs text-accent">−{m.savings}</span>
-                <span className="text-xs text-muted-foreground ml-2">by {m.eta}</span>
+              <div className="text-right whitespace-nowrap flex items-center gap-3">
+                <div className="flex flex-col items-end">
+                    <span className="font-mono text-xs text-accent">−{m.savings}</span>
+                    <span className="text-[10px] text-muted-foreground">by {m.eta}</span>
+                </div>
+                <button 
+                  onClick={() => handleAcceptMigration(m.id || Math.random().toString(), m.savingsNum)}
+                  className="bg-accent/10 hover:bg-accent/20 text-accent transition-colors p-1.5 rounded-full"
+                  title="Execute Migration"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                </button>
               </div>
             </motion.div>
           ))}

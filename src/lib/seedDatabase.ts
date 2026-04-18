@@ -2,15 +2,15 @@ import { collection, doc, setDoc, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 import collectionsData, { rackMetricsData } from "./firestore-collections";
 
-const seedCollection = async (collectionName: string, dataObj: Record<string, any> | any[][]) => {
+const seedCollection = async (collectionName: string, dataObj: Record<string, Record<string, unknown>> | unknown[][]) => {
   const batch = writeBatch(db);
   let count = 0;
 
   if (Array.isArray(dataObj)) {
     // Array of tuples like racksData [id, data]
     for (const [id, data] of dataObj) {
-      const docRef = doc(db, collectionName, id);
-      batch.set(docRef, data);
+      const docRef = doc(db, collectionName, id as string);
+      batch.set(docRef, data as never);
       count++;
     }
   } else {
@@ -45,7 +45,7 @@ export const seedDatabase = async () => {
     // Rack Metrics - need to do this per rack
     let metricsCount = 0;
     for (const [rackId] of collectionsData.racksData) {
-      const parentDocRef = doc(db, "racks", rackId);
+      const parentDocRef = doc(db, "racks", rackId as string);
       const metricsCollectionRef = collection(parentDocRef, "metrics");
       
       const rMetrics = rackMetricsData(rackId);
