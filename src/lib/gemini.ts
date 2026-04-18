@@ -8,7 +8,7 @@ export const GEMINI_API_KEYS = [
 ].filter(Boolean) as string[];
 
 const GEMINI_BASE_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 // Round-robin key rotation index (module-level state)
 let _keyIndex = 0;
