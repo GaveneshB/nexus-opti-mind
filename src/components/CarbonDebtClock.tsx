@@ -1,7 +1,7 @@
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { Leaf, TrendingUp, ArrowRight, Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
-import { geminiGenerate } from "@/lib/gemini";
+import { useGeminiEnergyAnalysis } from "@/hooks/useGeminiEnergyAnalysis";
 import { carbonStore } from "@/lib/carbonStore";
 import { genomeWorkloads } from "@/lib/mockData";
 
@@ -10,8 +10,7 @@ const CarbonDebtClock = () => {
   const debt = storeState.debt;
   const ratePerMin = storeState.ratePerMin;
 
-  const [loading, setLoading] = useState(true);
-  const [aiError, setAiError] = useState(false);
+  const { data: aiInsights, isLoading: loading, error: aiError } = useGeminiEnergyAnalysis(genomeWorkloads);
   const [migrations, setMigrations] = useState<{id: string; workload: string; from: string; to: string; savings: string; savingsNum: number; eta: string}[]>([]);
 
   const handleAcceptMigration = (id: string, savingsNum: number) => {
@@ -26,42 +25,17 @@ const CarbonDebtClock = () => {
   };
 
   useEffect(() => {
-    const fetchAiMigrations = async () => {
-      setLoading(true);
-      setAiError(false);
-      try {
-        const payloadString = JSON.stringify(genomeWorkloads.map(w => ({ id: w.id, power: w.avgPower, efficiency: w.efficiency })));
-        const prompt = `You are a Reinforcement Learning Optimizer for a datacenter mapping carbon emissions. 
-        Current Grid Mix: ${Math.round(storeState.gridMix.renewable * 100)}% Green. 
-        Active Workloads: ${payloadString}. 
-        Identify the 3 most inefficient or high-power workloads and generate strategic migration moves to renewable grids (like "Sabah Green" or "Hydro-Node-A") to cancel carbon debt. 
-        Output ONLY raw JSON format: [{"id": "uuid1", "workload": "WL-Alpha", "from": "Johor Grid", "to": "Sabah Green", "savings": "12.4 kg", "savingsNum": 12.4, "eta": "6:00 AM"}]. No markdown.`;
-        
-        const result = await geminiGenerate(prompt);
-        
-        const cleanedResult = result.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedResult);
-        
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMigrations(parsed);
-        } else {
-          throw new Error("Invalid output format from Gemini");
-        }
-      } catch (err) {
-        console.error("AI Generation failed:", err);
-        setAiError(true);
-        setMigrations([
-          { id: "1", workload: "WL-Gamma", from: "Johor Grid", to: "Sabah Green", savings: "12.4 kg", savingsNum: 12.4, eta: "6:00 AM" },
-          { id: "2", workload: "WL-Alpha", from: "Johor Grid", to: "Sabah Green", savings: "8.7 kg", savingsNum: 8.7, eta: "6:15 AM" },
-          { id: "3", workload: "WL-Epsilon", from: "Selangor Grid", to: "Sabah Green", savings: "15.2 kg", savingsNum: 15.2, eta: "6:30 AM" },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAiMigrations();
-  }, []);
+    if (aiInsights?.migrations) {
+      setMigrations(aiInsights.migrations);
+    } else if (aiError) {
+      // Fallback to simulation data if AI is truly exhausted
+      setMigrations([
+        { id: "1", workload: "WL-Gamma", from: "Johor Grid", to: "Sabah Green", savings: "12.4 kg", savingsNum: 12.4, eta: "6:00 AM" },
+        { id: "2", workload: "WL-Alpha", from: "Johor Grid", to: "Sabah Green", savings: "8.7 kg", savingsNum: 8.7, eta: "6:15 AM" },
+        { id: "3", workload: "WL-Epsilon", from: "Selangor Grid", to: "Sabah Green", savings: "15.2 kg", savingsNum: 15.2, eta: "6:30 AM" },
+      ]);
+    }
+  }, [aiInsights, aiError]);
 
   return (
     <div className="glass-card rounded-xl p-5">

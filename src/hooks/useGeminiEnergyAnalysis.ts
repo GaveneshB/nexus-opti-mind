@@ -1,10 +1,5 @@
-/**
- * Gemini AI Analysis Hook for Energy Genome Workloads
- * Uses AI to analyze workload patterns, identify optimizations, and predict behavior
- */
-
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { geminiGenerate } from "@/lib/gemini";
+import { geminiGenerate, parseGeminiJson } from "@/lib/gemini";
 import { GenomeWorkload } from "@/types/energy";
 
 export interface WorkloadAnalysis {
@@ -17,105 +12,28 @@ export interface WorkloadAnalysis {
   costSavingsPotential: string;
 }
 
+export interface MigrationRecommendation {
+  id: string;
+  workload: string;
+  from: string;
+  to: string;
+  savings: string;
+  savingsNum: number;
+  eta: string;
+}
+
 export interface EnergyGenomeAIInsights {
   analyses: WorkloadAnalysis[];
   overallRecommendation: string;
   predictedPeakTime: string;
   anomaliesDetected: string[];
   topOptimizationOpportunity: string;
-}
-
-/**
- * Analyzes a single workload using Gemini AI
- */
-async function analyzeWorkload(workload: GenomeWorkload): Promise<WorkloadAnalysis> {
-  const prompt = `You are an expert data center energy optimization analyst. Analyze this workload and provide insights.
-
-Workload Data:
-- ID: ${workload.id}
-- Type: ${workload.type}
-- Status: ${workload.status || "unknown"}
-- Average Power: ${workload.avgPower}W
-- Efficiency: ${workload.efficiency || "N/A"}%
-- Cost/Hour: $${workload.costPerHour?.toFixed(2) || "N/A"}
-- Phases: ${workload.phases?.join(", ") || "N/A"}
-- Twin Match: ${workload.match || "None"}
-
-Respond in JSON format with these exact fields (no markdown):
-{
-  "optimization": "Brief specific optimization for this workload",
-  "efficiency": "Analysis of current efficiency level",
-  "riskFactors": ["risk1", "risk2"],
-  "predictedBehavior": "What this workload will likely do next",
-  "recommendation": "Actionable recommendation",
-  "costSavingsPotential": "Estimated cost savings if optimized"
-}`;
-
-  try {
-    const response = await geminiGenerate(prompt);
-    const parsed = JSON.parse(response);
-    return {
-      workloadId: workload.id,
-      ...parsed,
-    };
-  } catch (error) {
-    console.error(`Failed to analyze workload ${workload.id}:`, error);
-    return {
-      workloadId: workload.id,
-      optimization: "Unable to analyze - API error",
-      efficiency: "Unknown",
-      riskFactors: [],
-      predictedBehavior: "Unable to predict",
-      recommendation: "Retry analysis later",
-      costSavingsPotential: "Unknown",
-    };
-  }
-}
-
-/**
- * Generates overall insights for all workloads
- */
-async function generateOverallInsights(
-  workloads: GenomeWorkload[],
-  analyses: WorkloadAnalysis[]
-): Promise<Omit<EnergyGenomeAIInsights, "analyses">> {
-  const workloadSummary = workloads
-    .map(
-      (w) =>
-        `${w.id}: ${w.type} (${w.status}, ${w.avgPower}W, ${w.efficiency || "?"}% eff)`
-    )
-    .join("\n");
-
-  const prompt = `You are an expert data center energy analyst. Based on these workloads and their analyses, provide strategic insights.
-
-Workloads:
-${workloadSummary}
-
-Respond in JSON format with these exact fields (no markdown):
-{
-  "overallRecommendation": "Top strategic recommendation for the entire workload portfolio",
-  "predictedPeakTime": "When peak energy consumption will likely occur",
-  "anomaliesDetected": ["anomaly1", "anomaly2"],
-  "topOptimizationOpportunity": "Single highest-impact optimization"
-}`;
-
-  try {
-    const response = await geminiGenerate(prompt);
-    const parsed = JSON.parse(response);
-    return parsed;
-  } catch (error) {
-    console.error("Failed to generate overall insights:", error);
-    return {
-      overallRecommendation: "Unable to generate recommendations at this time",
-      predictedPeakTime: "Unable to predict",
-      anomaliesDetected: [],
-      topOptimizationOpportunity: "Unable to determine",
-    };
-  }
+  migrations: MigrationRecommendation[];
 }
 
 /**
  * Hook to get Gemini AI analysis of Energy Genome workloads
+ * CONSOLIDATED: Fetches all insights in a single API call to minimize quota usage.
  */
 export const useGeminiEnergyAnalysis = (
   workloads: GenomeWorkload[] | undefined
@@ -133,21 +51,60 @@ export const useGeminiEnergyAnalysis = (
         };
       }
 
-      // Analyze first 3 workloads to avoid excessive API calls
+      // Analyze first 3 workloads to avoid excessive context size
       const workloadsToAnalyze = workloads.slice(0, 3);
-      const analyses = await Promise.all(
-        workloadsToAnalyze.map((w) => analyzeWorkload(w))
-      );
+      const workloadSummary = workloadsToAnalyze
+        .map(
+          (w) =>
+            `- ID: ${w.id}, Type: ${w.type}, Status: ${w.status}, Power: ${w.avgPower}W, Eff: ${w.efficiency}%`
+        )
+        .join("\n");
 
-      const overallInsights = await generateOverallInsights(workloads, analyses);
+      const prompt = `You are an expert data center energy analyst and RL optimizer. Analyze these workloads and provide strategic insights and migration recommendations.
 
-      return {
-        analyses,
-        ...overallInsights,
-      };
+Workloads:
+${workloadSummary}
+
+Respond in JSON format with these exact fields:
+{
+  "analyses": [
+    {
+      "workloadId": "id from input",
+      "optimization": "Brief specific optimization",
+      "efficiency": "Efficiency analysis",
+      "riskFactors": ["risk1", "risk2"],
+      "predictedBehavior": "Prediction",
+      "recommendation": "Actionable recommendation",
+      "costSavingsPotential": "Estimated savings"
+    }
+  ],
+  "overallRecommendation": "Top strategic recommendation",
+  "predictedPeakTime": "Predicted peak time",
+  "anomaliesDetected": ["anomaly1", "anomaly2"],
+  "topOptimizationOpportunity": "Highest-impact opportunity",
+  "migrations": [
+    {
+      "id": "unique-id",
+      "workload": "Workload ID",
+      "from": "Current Grid",
+      "to": "Target Renewable Grid (e.g. Sabah Green)",
+      "savings": "X.X kg",
+      "savingsNum": float,
+      "eta": "HH:MM AM/PM"
+    }
+  ]
+}`;
+
+      try {
+        const response = await geminiGenerate(prompt);
+        return parseGeminiJson<EnergyGenomeAIInsights>(response);
+      } catch (error) {
+        console.error("Gemini Analysis failed:", error);
+        throw error;
+      }
     },
     enabled: !!workloads && workloads.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes (increased to save quota)
     retry: 1,
   });
 };
@@ -160,9 +117,23 @@ export const useGeminiWorkloadAnalysis = (
 ): UseQueryResult<WorkloadAnalysis, Error> => {
   return useQuery({
     queryKey: ["gemini-workload-analysis", workload?.id],
-    queryFn: () => analyzeWorkload(workload!),
+    queryFn: async (): Promise<WorkloadAnalysis> => {
+      const prompt = `Analyze this workload: ${workload?.id} (${workload?.type}, ${workload?.avgPower}W).
+Respond in JSON format:
+{
+  "optimization": "...",
+  "efficiency": "...",
+  "riskFactors": [],
+  "predictedBehavior": "...",
+  "recommendation": "...",
+  "costSavingsPotential": "..."
+}`;
+      const response = await geminiGenerate(prompt);
+      const parsed = parseGeminiJson<Omit<WorkloadAnalysis, "workloadId">>(response);
+      return { workloadId: workload!.id, ...parsed };
+    },
     enabled: !!workload,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000,
     retry: 1,
   });
 };

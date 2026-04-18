@@ -15,9 +15,27 @@ let _keyIndex = 0;
 
 /** Returns the next API key in rotation. */
 export function getRotatedApiKey(): string {
+  if (GEMINI_API_KEYS.length === 0) return "";
   const key = GEMINI_API_KEYS[_keyIndex % GEMINI_API_KEYS.length];
   _keyIndex++;
   return key;
+}
+
+/** 
+ * Cleans Gemini response by stripping markdown code blocks.
+ */
+export function parseGeminiJson<T>(text: string): T {
+  try {
+    // Remove markdown code blocks if present
+    const cleaned = text
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (e) {
+    console.error("Failed to parse Gemini JSON:", e, "Original text:", text);
+    throw new Error("Invalid AI response format");
+  }
 }
 
 export interface GeminiKeyStatus {
@@ -73,14 +91,32 @@ export async function testGeminiKey(
 
 /** Sends a prompt using automatic key rotation (skips failed keys). */
 export async function geminiGenerate(prompt: string): Promise<string> {
+  if (GEMINI_API_KEYS.length === 0) {
+    throw new Error("No Gemini API keys configured in .env");
+  }
+
   const tried = new Set<string>();
-  for (let attempt = 0; attempt < GEMINI_API_KEYS.length; attempt++) {
+  let lastError = "";
+
+  for (let attempt = 0; attempt < Math.min(GEMINI_API_KEYS.length, 5); attempt++) {
     const key = getRotatedApiKey();
     if (tried.has(key)) continue;
     tried.add(key);
 
     const result = await testGeminiKey(key, prompt);
-    if (result.ok && result.response) return result.response;
+    
+    if (result.ok && result.response) {
+      return result.response;
+    }
+
+    lastError = result.error || "Unknown error";
+    
+    // If it's a rate limit error, wait a bit before trying the next key
+    if (lastError.includes("429") || lastError.toLowerCase().includes("quota")) {
+      console.warn(`Gemini Key ${attempt + 1} rate limited. Waiting 1s before rotation...`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
-  throw new Error("All Gemini API keys failed or are exhausted.");
+
+  throw new Error(`All Gemini API keys failed: ${lastError}`);
 }
