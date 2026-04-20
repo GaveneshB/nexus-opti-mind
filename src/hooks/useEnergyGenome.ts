@@ -6,7 +6,7 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { energyGenomeApi } from "@/lib/api/energyGenome";
 import { EnergyGenomeData, GenomeWorkload } from "@/types/energy";
-import { getFallbackGenomeWorkloads } from "@/lib/mockData";
+import { carbonStore } from "@/lib/carbonStore";
 
 /**
  * Hook to fetch all workloads
@@ -18,16 +18,15 @@ export const useEnergyGenomeWorkloads = (): UseQueryResult<GenomeWorkload[], Err
   return useQuery({
     queryKey: ["energy-genome", "workloads"],
     queryFn: async (): Promise<GenomeWorkload[]> => {
-      // If API URL is empty, return mock data immediately
+      // If API URL is empty, return store-managed mock data
       if (!apiUrl) {
-        return getFallbackGenomeWorkloads() as GenomeWorkload[];
+        return carbonStore.getWorkloads();
       }
       return energyGenomeApi.getWorkloads();
     },
-    staleTime: 30000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    staleTime: 5000, // Reduced for local interactivity
+    gcTime: 5 * 60 * 1000,
     retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -40,9 +39,9 @@ export const useEnergyGenome = (): UseQueryResult<EnergyGenomeData, Error> => {
   return useQuery({
     queryKey: ["energy-genome"],
     queryFn: async (): Promise<EnergyGenomeData> => {
-      // If API URL is empty, return mock data immediately
+      // If API URL is empty, return store-managed mock data
       if (!apiUrl) {
-        const workloads = getFallbackGenomeWorkloads() as GenomeWorkload[];
+        const workloads = carbonStore.getWorkloads();
         return {
           workloads,
           timestamp: new Date().toISOString(),

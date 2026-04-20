@@ -22,19 +22,32 @@ export function getRotatedApiKey(): string {
 }
 
 /** 
- * Cleans Gemini response by stripping markdown code blocks.
+ * Cleans Gemini response by extracting JSON block.
+ * Handles cases where the model adds introductory or concluding text.
  */
 export function parseGeminiJson<T>(text: string): T {
   try {
-    // Remove markdown code blocks if present
-    const cleaned = text
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
+    // 1. Try to extract JSON from markdown code blocks first
+    const codeBlockMatch = text.match(/```json\s*([\s\S]*?)\s*```/i) || 
+                          text.match(/```\s*([\s\S]*?)\s*```/i);
+    
+    let jsonContent = codeBlockMatch ? codeBlockMatch[1] : text;
+
+    // 2. If no code blocks, or nested, try to find the outermost braces
+    if (!codeBlockMatch) {
+      const firstBrace = jsonContent.indexOf('{');
+      const lastBrace = jsonContent.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
+      }
+    }
+
+    // 3. Clean up any remaining artifacts and parse
+    const cleaned = jsonContent.trim();
     return JSON.parse(cleaned) as T;
   } catch (e) {
-    console.error("Failed to parse Gemini JSON:", e, "Original text:", text);
-    throw new Error("Invalid AI response format");
+    console.error("Failed to parse AI JSON:", e, "Original text snippet:", text.substring(0, 100) + "...");
+    throw new Error("Invalid AI response format - could not extract valid JSON");
   }
 }
 
@@ -89,34 +102,10 @@ export async function testGeminiKey(
   }
 }
 
-/** Sends a prompt using automatic key rotation (skips failed keys). */
+import { groqGenerate } from "./groq";
+
+/** Sends a prompt using Groq AI (replacement for Gemini). */
 export async function geminiGenerate(prompt: string): Promise<string> {
-  if (GEMINI_API_KEYS.length === 0) {
-    throw new Error("No Gemini API keys configured in .env");
-  }
-
-  const tried = new Set<string>();
-  let lastError = "";
-
-  for (let attempt = 0; attempt < Math.min(GEMINI_API_KEYS.length, 5); attempt++) {
-    const key = getRotatedApiKey();
-    if (tried.has(key)) continue;
-    tried.add(key);
-
-    const result = await testGeminiKey(key, prompt);
-    
-    if (result.ok && result.response) {
-      return result.response;
-    }
-
-    lastError = result.error || "Unknown error";
-    
-    // If it's a rate limit error, wait a bit before trying the next key
-    if (lastError.includes("429") || lastError.toLowerCase().includes("quota")) {
-      console.warn(`Gemini Key ${attempt + 1} rate limited. Waiting 1s before rotation...`);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
-
-  throw new Error(`All Gemini API keys failed: ${lastError}`);
+  console.log("✓ Using Groq AI (Free)");
+  return groqGenerate(prompt);
 }

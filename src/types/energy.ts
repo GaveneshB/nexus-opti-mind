@@ -18,7 +18,7 @@ export interface GenomeWorkload {
   match?: string | null; // Twin workload ID
   startTime?: string;
   endTime?: string;
-  status?: "running" | "scheduled" | "completed" | "idle";
+  status?: "running" | "scheduled" | "completed" | "idle" | "migrated";
   efficiency?: number; // 0-100 representing efficiency percentage
   costPerHour?: number;
 }
