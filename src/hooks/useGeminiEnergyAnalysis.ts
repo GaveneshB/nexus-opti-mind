@@ -142,7 +142,9 @@ Respond using the following JSON schema. DO NOT add any text before or after the
 }`;
 
       try {
+        console.log("Building energy analysis prompt...");
         const response = await geminiGenerate(prompt);
+        console.log("Parsing AI response...");
         const parsed = parseGeminiJson<EnergyGenomeAIInsights>(response);
         
         // Post-process: filter out any hallucinated migrations for migrated workloads
@@ -155,9 +157,14 @@ Respond using the following JSON schema. DO NOT add any text before or after the
           );
         }
         
+        console.log("Energy analysis complete:", {
+          analyses: parsed.analyses?.length || 0,
+          migrations: parsed.migrations?.length || 0,
+        });
+        
         return parsed;
       } catch (error) {
-        console.error("Gemini Analysis failed:", error);
+        console.error("Energy Analysis failed:", error);
         throw error;
       }
     },

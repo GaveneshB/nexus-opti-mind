@@ -6,16 +6,21 @@
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_MODEL = "llama-3.1-8b-instant";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 /**
- * Sends a prompt to Groq API and returns the generated text.
+ * Sends a prompt to Groq API and returns the generated text with retry logic.
  */
-export async function groqGenerate(prompt: string): Promise<string> {
+export async function groqGenerate(prompt: string, retryCount = 0): Promise<string> {
   if (!GROQ_API_KEY) {
+    console.error("❌ Groq API key missing. Add VITE_GROQ_API_KEY to .env");
     throw new Error("Groq API key missing. Add VITE_GROQ_API_KEY to .env");
   }
 
   try {
+    console.log(`🚀 Groq Request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
+    
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -35,25 +40,36 @@ export async function groqGenerate(prompt: string): Promise<string> {
           },
         ],
         temperature: 0.1,
-        max_tokens: 1024,
+        max_tokens: 2048,
       }),
     });
 
+    // Handle rate limiting with exponential backoff
+    if (response.status === 429 && retryCount < MAX_RETRIES) {
+      const waitTime = RETRY_DELAY_MS * Math.pow(2, retryCount);
+      console.warn(`⏳ Rate limited. Retrying in ${waitTime}ms...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      return groqGenerate(prompt, retryCount + 1);
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Groq API error: ${response.status} ${errorData.error?.message || response.statusText}`);
+      const errorMsg = errorData.error?.message || response.statusText;
+      throw new Error(`Groq API error (${response.status}): ${errorMsg}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
+      console.warn("⚠️ Groq returned empty content:", data);
       throw new Error("Groq returned an empty response");
     }
 
+    console.log("✅ Groq response received successfully");
     return content;
   } catch (error) {
-    console.error("Groq Generation failed:", error);
+    console.error("❌ Groq Generation failed:", error);
     throw error;
   }
 }
