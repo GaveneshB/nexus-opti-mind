@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { CloudLightning, Thermometer, Sun, AlertCircle } from "lucide-react";
-import { forecasts } from "@/lib/mockData";
+import { useWorkloadForecasts } from "@/hooks/useApi";
 
 const iconMap = {
   surge: CloudLightning,
@@ -27,6 +27,41 @@ const severityIcon = {
 };
 
 const WorkloadForecast = () => {
+  const { data: forecasts, isLoading, error } = useWorkloadForecasts();
+
+  if (isLoading) {
+    return (
+      <div className="glass-card rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="icon-3d-primary">
+            <CloudLightning className="h-5 w-5 text-primary" strokeWidth={1.5} />
+          </div>
+          <h2 className="font-heading font-semibold text-foreground">Workload Weather Forecast</h2>
+        </div>
+        <div className="space-y-3">
+          <div className="glass rounded-lg p-3 animate-pulse">
+            <div className="h-4 bg-muted rounded mb-2"></div>
+            <div className="h-3 bg-muted rounded w-3/4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="glass-card rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="icon-3d-destructive">
+            <AlertCircle className="h-5 w-5 text-destructive" strokeWidth={1.5} />
+          </div>
+          <h2 className="font-heading font-semibold text-foreground">Workload Weather Forecast</h2>
+        </div>
+        <p className="text-destructive text-sm">Failed to load forecast data</p>
+      </div>
+    );
+  }
+
   return (
     <div className="glass-card rounded-xl p-5">
       <div className="flex items-center gap-3 mb-4">
@@ -37,7 +72,7 @@ const WorkloadForecast = () => {
       </div>
 
       <div className="space-y-3">
-        {forecasts.map((f, i) => {
+        {forecasts?.map((f, i) => {
           const Icon = iconMap[f.type as keyof typeof iconMap] || AlertCircle;
           const sev = f.severity as "high" | "medium" | "low";
           return (
