@@ -17,6 +17,13 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "",
 };
 
+// Log Firebase config status (without exposing sensitive keys)
+console.log("[Firebase] Config status:", {
+  projectId: firebaseConfig.projectId ? "✅ set" : "❌ missing",
+  apiKey: firebaseConfig.apiKey ? "✅ set" : "❌ missing",
+  authDomain: firebaseConfig.authDomain ? "✅ set" : "❌ missing",
+});
+
 let app: any = null;
 let analytics: any = null;
 let db: any = null;
@@ -25,20 +32,26 @@ let auth: any = null;
 
 try {
   // Initialize Firebase only if we have the required config
-  if (firebaseConfig.projectId) {
+  if (firebaseConfig.projectId && firebaseConfig.apiKey) {
+    console.log("[Firebase] Initializing with projectId:", firebaseConfig.projectId);
     app = initializeApp(firebaseConfig);
     analytics = getAnalytics(app);
     db = getFirestore(app);
     rtdb = getDatabase(app);
     auth = getAuth(app);
-    console.log("✅ Firebase initialized successfully");
+    console.log("✅ [Firebase] Initialization successful");
+    console.log("✅ [Firebase] db object:", db ? "valid" : "null");
   } else {
-    console.warn("⚠️ Firebase config missing - using fallback/mock data");
+    console.warn("[Firebase] Configuration incomplete - using fallback/mock data");
+    if (!firebaseConfig.projectId) console.warn("  - Missing: projectId");
+    if (!firebaseConfig.apiKey) console.warn("  - Missing: apiKey");
   }
 } catch (error) {
-  console.error("❌ Firebase initialization failed:", error);
+  console.error("❌ [Firebase] Initialization failed:", error);
   // Don't throw - let the app continue with fallback data
 }
+
+console.log("[Firebase] db export:", db ? "✅ valid Firestore instance" : "❌ null (using fallback)");
 
 export { analytics, db, rtdb, auth };
 export default app;

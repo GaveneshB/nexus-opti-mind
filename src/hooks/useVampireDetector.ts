@@ -131,45 +131,64 @@ export const useVampireDetector = () => {
  
   // ── Subscribe to Firestore rack documents ──────────────────────────────────
   useEffect(() => {
-    const q = query(collection(db, "server_racks"), orderBy("id"), limit(8));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        if (!snapshot.empty) {
-          const firestoreRacks = snapshot.docs.map((d) => ({
-            ...d.data(),
-            id: d.id,
-            // restore history array (Firestore strips typed arrays safely)
-            history: d.data().history || [],
-          })) as ServerRack[];
-          // Merge Firestore state into local racks (keeps history intact)
-          setRacks((prev) =>
-            prev.map((local) => {
-              const remote = firestoreRacks.find((r) => r.id === local.id);
-              return remote
-                ? { ...local, ...remote, history: local.history }
-                : local;
-            })
-          );
-          setFirestoreConnected(true);
-        } else {
-          // First run — seed the collection
-          setFirestoreConnected(true);
+    // Guard: Only subscribe if Firebase is initialized
+    if (!db) {
+      console.warn("[VampireDetector] Firebase not initialized - using local data only");
+      setFirestoreConnected(false);
+      setSyncError("Firebase not configured");
+      return;
+    }
+
+    try {
+      const q = query(collection(db, "server_racks"), orderBy("id"), limit(8));
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const firestoreRacks = snapshot.docs.map((d) => ({
+              ...d.data(),
+              id: d.id,
+              // restore history array (Firestore strips typed arrays safely)
+              history: d.data().history || [],
+            })) as ServerRack[];
+            // Merge Firestore state into local racks (keeps history intact)
+            setRacks((prev) =>
+              prev.map((local) => {
+                const remote = firestoreRacks.find((r) => r.id === local.id);
+                return remote
+                  ? { ...local, ...remote, history: local.history }
+                  : local;
+              })
+            );
+            setFirestoreConnected(true);
+          } else {
+            // First run — seed the collection
+            setFirestoreConnected(true);
+          }
+          setSyncError(null);
+        },
+        (err) => {
+          setSyncError(err.message);
+          setFirestoreConnected(false);
+          console.error("[VampireDetector] Firestore subscription error:", err);
         }
-        setSyncError(null);
-      },
-      (err) => {
-        setSyncError(err.message);
-        setFirestoreConnected(false);
-      }
-    );
-    return () => unsubscribe();
+      );
+      return () => unsubscribe();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error("[VampireDetector] Failed to set up Firestore listener:", errorMsg);
+      setSyncError(errorMsg);
+      setFirestoreConnected(false);
+    }
   }, []);
  
   // ── Write a rack update to Firestore ──────────────────────────────────────
   const syncRackToFirestore = useCallback(async (rack: ServerRack) => {
-    try {
-      const ref = doc(db, "server_racks", rack.id);
+    // Guard: Only sync if Firebase is initialized
+    if (!db) {
+      return;
+    }
+
       await setDoc(
         ref,
         {
