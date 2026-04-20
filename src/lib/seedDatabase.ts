@@ -58,24 +58,24 @@ export const seedDatabase = async () => {
     }
     results.push(`Rack metrics seeded: ${metricsCount}`);
 
-    // 3. Vampire Servers
-    const vampireCount = await seedCollection("vampireServers", collectionsData.vampireServersData);
-    results.push(`Vampire servers seeded: ${vampireCount}`);
+    // 3. Detected Vampires (Vampire Servers)
+    const vampireCount = await seedCollection("detected_vampires", collectionsData.vampireServersData);
+    results.push(`Detected vampires seeded: ${vampireCount}`);
 
     // 4. Thermal Regrets
-    const regretCount = await seedCollection("thermalRegrets", collectionsData.thermalRegretsData);
+    const regretCount = await seedCollection("thermal_regrets", collectionsData.thermalRegretsData);
     results.push(`Thermal regrets seeded: ${regretCount}`);
 
     // 5. Workload Forecasts
-    const forecastCount = await seedCollection("workloadForecasts", collectionsData.workloadForecastsData);
+    const forecastCount = await seedCollection("workload_forecasts", collectionsData.workloadForecastsData);
     results.push(`Workload forecasts seeded: ${forecastCount}`);
 
-    // 6. Energy Genomes
-    const genomesCount = await seedCollection("energyGenomes", collectionsData.energyGenomesData);
-    results.push(`Energy genomes seeded: ${genomesCount}`);
+    // 6. Energy Workloads
+    const genomesCount = await seedCollection("energy_workloads", collectionsData.energyGenomesData);
+    results.push(`Energy workloads seeded: ${genomesCount}`);
 
     // 7. Energy Metrics
-    const energyMetricsCount = await seedCollection("energyMetrics", collectionsData.energyMetricsData);
+    const energyMetricsCount = await seedCollection("energy_metrics", collectionsData.energyMetricsData);
     results.push(`Energy metrics seeded: ${energyMetricsCount}`);
 
     // 8. Alerts
@@ -83,11 +83,11 @@ export const seedDatabase = async () => {
     results.push(`Alerts seeded: ${alertsCount}`);
 
     // 9. Audit Logs
-    const auditCount = await seedCollection("auditLogs", collectionsData.auditLogsData);
+    const auditCount = await seedCollection("audit_logs", collectionsData.auditLogsData);
     results.push(`Audit logs seeded: ${auditCount}`);
 
     // 10. User Preferences
-    const userPrefsCount = await seedCollection("userPreferences", collectionsData.userPreferencesData);
+    const userPrefsCount = await seedCollection("user_preferences", collectionsData.userPreferencesData);
     results.push(`User preferences seeded: ${userPrefsCount}`);
 
     console.log("Database seeded successfully!\n", results.join("\n"));

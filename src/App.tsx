@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeEnergyGenome } from "@/lib/api/config";
 import { SystemIntegration } from "@/lib/systemIntegration";
+import { initializeVampireDatabase } from "@/lib/initVampireDatabase";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -76,6 +77,16 @@ const AppContent = () => {
         console.warn("⚠️ Energy Genome warnings:", initResult.errors);
         SystemIntegration.emitWarning("System", "Energy Genome using fallback/mock data", { errors: initResult.errors });
       }
+
+      // Initialize vampire database (seed detected_vampires collection if empty)
+      console.log("🚀 Initializing vampire detection database...");
+      initializeVampireDatabase()
+        .then((result) => {
+          console.log("✅ Vampire DB initialization:", result.message);
+        })
+        .catch((err) => {
+          console.warn("⚠️ Vampire DB initialization warning:", err);
+        });
       
       console.log("✅ Initialization complete - marking as ready");
     } catch (error) {
