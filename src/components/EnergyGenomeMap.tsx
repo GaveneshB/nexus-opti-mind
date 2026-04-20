@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { Dna, Link2, AlertCircle, Loader, Sparkles, TrendingUp, Zap, AlertTriangle } from "lucide-react";
 import { useEnergyGenomeWorkloads } from "@/hooks/useEnergyGenome";
 import { useGeminiEnergyAnalysis, type WorkloadAnalysis } from "@/hooks/useGeminiEnergyAnalysis";
 import { getFallbackGenomeWorkloads } from "@/lib/mockData";
+import { carbonStore } from "@/lib/carbonStore";
 import { SystemIntegration } from "@/lib/systemIntegration";
 import { GenomeWorkload } from "@/types/energy";
 
@@ -29,13 +30,15 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
                   ? "bg-green-500/20 text-green-400"
                   : workload.status === "scheduled"
                     ? "bg-blue-500/20 text-blue-400"
-                    : "bg-gray-500/20 text-gray-400"
+                    : workload.status === "migrated"
+                      ? "bg-purple-500/20 text-purple-400"
+                      : "bg-gray-500/20 text-gray-400"
               }`}
             >
               {workload.status}
             </span>
           )}
-          {analysis && analysis.optimization && (
+          {analysis && analysis.optimization && workload.status !== "migrated" && (
             <span className="flex items-center gap-1 text-xs text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-md animate-pulse">
               <Sparkles className="h-3 w-3" strokeWidth={1.5} /> AI Insight
             </span>
@@ -43,7 +46,7 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
         </div>
         <div className="flex items-center gap-2">
           <div className="text-right">
-            <span className="font-mono text-xs text-muted-foreground">{workload.avgPower}W</span>
+            <span className="font-mono text-xs text-muted-foreground">{workload.avgPower.toFixed(0)}W</span>
             {workload.efficiency && (
               <span className="block font-mono text-[10px] text-accent">
                 {workload.efficiency}% eff
@@ -83,7 +86,7 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
       )}
 
       {/* AI Analysis Section */}
-      {analysis && (
+      {analysis && workload.status !== "migrated" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -120,7 +123,10 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
 };
 
 const EnergyGenomeMap = () => {
-  const { data: workloads, isLoading, error, isRefetching } = useEnergyGenomeWorkloads();
+  const storeState = useSyncExternalStore(carbonStore.subscribe, carbonStore.getSnapshot);
+  const workloads = storeState.workloads;
+  
+  const { isLoading, error, isRefetching } = useEnergyGenomeWorkloads();
   const { data: aiInsights, isLoading: aiLoading } = useGeminiEnergyAnalysis(workloads);
   const [showAIInsights, setShowAIInsights] = useState(true);
 
@@ -137,9 +143,9 @@ const EnergyGenomeMap = () => {
     }
   }, [workloads, error, aiInsights]);
 
-  // Use fallback data if API fails
-  const displayData = workloads || getFallbackGenomeWorkloads();
-  const isFallback = !workloads && !isLoading;
+  // Source displayData directly from stateful store
+  const displayData = workloads;
+  const isFallback = !import.meta.env.VITE_ENERGY_GENOME_API_URL;
 
   // Create analysis map for quick lookup
   const analysisMap = new Map(aiInsights?.analyses.map((a) => [a.workloadId, a]) || []);
