@@ -138,9 +138,9 @@ export const useVampireDetector = () => {
   useEffect(() => {
     // Guard: Only subscribe if Firebase is initialized
     if (!db) {
-      console.warn("[VampireDetector] Firebase not initialized - using local simulation only");
+      console.log("[VampireDetector] Firebase not initialized - using local simulation mode");
       setFirestoreConnected(false);
-      setSyncError("Firebase not configured");
+      // Don't set error - this is normal operation in local mode
       return;
     }
 
@@ -195,16 +195,19 @@ export const useVampireDetector = () => {
             
             setFirestoreConnected(true);
           } else {
-            console.warn("[VampireDetector] No detected vampires found in Firestore");
+            console.log("[VampireDetector] No detected vampires in Firestore, using local simulation");
             setFirestoreConnected(true);
           }
           setSyncError(null);
         },
         (err) => {
+          // Only set error for actual Firestore errors, not for missing Firebase config
           const errorMsg = err.message || String(err);
-          setSyncError(errorMsg);
+          if (!errorMsg.includes("not configured")) {
+            setSyncError(errorMsg);
+            console.error("[VampireDetector] Firestore subscription error:", errorMsg);
+          }
           setFirestoreConnected(false);
-          console.error("[VampireDetector] Firestore subscription error:", errorMsg);
         }
       );
       
@@ -214,8 +217,11 @@ export const useVampireDetector = () => {
       };
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error("[VampireDetector] Failed to set up Firestore listener:", errorMsg);
-      setSyncError(errorMsg);
+      // Only set error for actual errors, not for missing Firebase config
+      if (!errorMsg.includes("not configured")) {
+        setSyncError(errorMsg);
+        console.error("[VampireDetector] Failed to set up Firestore listener:", errorMsg);
+      }
       setFirestoreConnected(false);
     }
   }, []);
