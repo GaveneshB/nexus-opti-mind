@@ -9,90 +9,94 @@ import { SystemIntegration } from "@/lib/systemIntegration";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, staleTime: 5 * 60 * 1000 },
+  },
+});
 
 // Loading Screen
 const LoadingScreen = () => (
-  <div className="flex items-center justify-center h-screen bg-background">
-    <div className="text-center">
-      <div className="mb-4 inline-flex">
-        <div className="animate-spin">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0a0a0a" }}>
+    <div style={{ textAlign: "center" }}>
+      <div style={{ marginBottom: "16px", display: "inline-flex" }}>
+        <div style={{ animation: "spin 1s linear infinite" }}>
+          <div style={{ width: "32px", height: "32px", border: "4px solid #0ea5e9", borderTopColor: "transparent", borderRadius: "50%" }}></div>
         </div>
       </div>
-      <h1 className="text-2xl font-bold text-foreground mb-2">NEXUS<span className="text-primary">OPS</span></h1>
-      <p className="text-muted-foreground text-sm">Initializing Data Center Intelligence Platform...</p>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", color: "#fff", marginBottom: "8px" }}>
+        NEXUS<span style={{ color: "#0ea5e9" }}>OPS</span>
+      </h1>
+      <p style={{ color: "#666", fontSize: "14px" }}>Initializing Data Center Intelligence Platform...</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   </div>
 );
 
-// Error Boundary Component
-class ErrorBoundary extends React.Component<
-  { children: ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("App Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex items-center justify-center h-screen bg-background text-foreground">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">⚠️ Application Error</h1>
-            <p className="text-muted-foreground mb-4">{this.state.error?.message}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-            >
-              Reload Application
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
+// Simple Error Component
+const ErrorDisplay = ({ error, onReload }: { error: string; onReload: () => void }) => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0a0a0a" }}>
+    <div style={{ textAlign: "center", maxWidth: "500px", color: "#fff" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>⚠️ Error Loading App</h1>
+      <p style={{ color: "#f87171", marginBottom: "16px", fontSize: "14px", wordBreak: "break-word" }}>{error}</p>
+      <p style={{ color: "#999", marginBottom: "24px", fontSize: "12px" }}>Check the browser console (F12) for details.</p>
+      <button
+        onClick={onReload}
+        style={{
+          padding: "8px 24px",
+          background: "#0ea5e9",
+          color: "#fff",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+        }}
+      >
+        Reload Application
+      </button>
+    </div>
+  </div>
+);
 
 const AppContent = () => {
   const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
+      console.log("🚀 Starting app initialization...");
+      
       // Initialize Energy Genome system on app startup
       const initResult = initializeEnergyGenome();
+      console.log("✅ Energy Genome initialized:", initResult);
       
       if (initResult.configured) {
         SystemIntegration.emitUpdate("System", "Energy Genome API initialized successfully");
       } else if (initResult.errors.length > 0) {
-        console.warn("Energy Genome configuration warnings:", initResult.errors);
-        SystemIntegration.emitWarning(
-          "System",
-          "Energy Genome using fallback/mock data",
-          { errors: initResult.errors }
-        );
+        console.warn("⚠️ Energy Genome warnings:", initResult.errors);
+        SystemIntegration.emitWarning("System", "Energy Genome using fallback/mock data", { errors: initResult.errors });
       }
+      
+      console.log("✅ Initialization complete - marking as ready");
     } catch (error) {
-      console.error("Failed to initialize Energy Genome:", error);
-      // Continue anyway - app should still render
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("❌ Initialization error:", errorMsg);
+      setError(errorMsg);
+      return;
     }
     
-    // Mark as ready after a brief delay to ensure all services are loaded
-    const timer = setTimeout(() => setIsReady(true), 500);
+    // Mark as ready after a brief delay
+    const timer = setTimeout(() => {
+      console.log("✅ App ready to display");
+      setIsReady(true);
+    }, 500);
+    
     return () => clearTimeout(timer);
   }, []);
+
+  if (error) {
+    return <ErrorDisplay error={error} onReload={() => window.location.reload()} />;
+  }
 
   if (!isReady) {
     return <LoadingScreen />;
@@ -102,7 +106,6 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
@@ -111,15 +114,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppContent />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
