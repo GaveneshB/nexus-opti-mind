@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, TrendingUp, TrendingDown, ArrowRight, Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGeminiEnergyAnalysis } from "@/hooks/useGeminiEnergyAnalysis";
+import { useGroqEnergyAnalysis } from "@/hooks/useGroqEnergyAnalysis";
 import { carbonStore } from "@/lib/carbonStore";
 import { genomeWorkloads } from "@/lib/mockData";
 
@@ -13,7 +13,7 @@ const CarbonDebtClock = () => {
   const ratePerMin = storeState.ratePerMin;
   const prevDebtRef = useRef(debt);
 
-  const { data: aiInsights, isLoading: loading, error: aiError } = useGeminiEnergyAnalysis(storeState.workloads);
+  const { data: aiInsights, isLoading: loading, error: aiError } = useGroqEnergyAnalysis(storeState.workloads);
   const [migrations, setMigrations] = useState<{id: string; workload: string; from: string; to: string; savings: string; savingsNum: number; eta: string}[]>([]);
   const [executedIds, setExecutedIds] = useState<Set<string>>(new Set());
   const [showSavingsFlash, setShowSavingsFlash] = useState<{amount: number} | null>(null);
@@ -41,10 +41,10 @@ const CarbonDebtClock = () => {
       // Improve grid mix slightly per migration
       carbonStore.improveGridMix(storeState.gridMix.renewable + 0.05);
       
-      // Invalidate the AI query cache so it fetches fresh suggestions
+      // Invalidate the Groq query cache so it fetches fresh suggestions
       // Use a small delay to let the store state propagate
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["gemini-energy-analysis"] });
+        queryClient.invalidateQueries({ queryKey: ["groq-energy-analysis"] });
       }, 100);
   };
 
@@ -95,9 +95,9 @@ const CarbonDebtClock = () => {
                     <span>Using Fallback (Check .env)</span>
                 </div>
             ) : (
-                <div className="flex items-center gap-1 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full" title="Real-time Optimizer: Groq Llama 3.1 Advanced RL">
+                <div className="flex items-center gap-1 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full" title="Groq Llama 3.1 8B - Unlimited Migration Suggestions">
                     <Sparkles className="h-3 w-3" />
-                    <span>Groq Advanced RL</span>
+                    <span>Groq Llama 3.1</span>
                 </div>
             )}
         </div>
