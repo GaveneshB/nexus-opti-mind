@@ -23,7 +23,7 @@ const calculateTickRate = () => {
 };
 
 // Start the global tick
-let tickRateParams = { kgPerMin: calculateTickRate() };
+const tickRateParams = { kgPerMin: calculateTickRate() };
 
 // Global Store Hook export
 let cachedSnapshot = {
