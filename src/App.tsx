@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode, useState } from \"react\";
+import React, { useEffect, ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,7 +9,22 @@ import { SystemIntegration } from "@/lib/systemIntegration";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const queryClient = new QueryClient();\n\n// Loading Screen\nconst LoadingScreen = () => (\n  <div className=\"flex items-center justify-center h-screen bg-background\">\n    <div className=\"text-center\">\n      <div className=\"mb-4 inline-flex\">\n        <div className=\"animate-spin\">\n          <div className=\"h-8 w-8 border-4 border-primary border-t-transparent rounded-full\"></div>\n        </div>\n      </div>\n      <h1 className=\"text-2xl font-bold text-foreground mb-2\">NEXUS<span className=\"text-primary\">OPS</span></h1>\n      <p className=\"text-muted-foreground text-sm\">Initializing Data Center Intelligence Platform...</p>\n    </div>\n  </div>\n);
+const queryClient = new QueryClient();
+
+// Loading Screen
+const LoadingScreen = () => (
+  <div className="flex items-center justify-center h-screen bg-background">
+    <div className="text-center">
+      <div className="mb-4 inline-flex">
+        <div className="animate-spin">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+      <h1 className="text-2xl font-bold text-foreground mb-2">NEXUS<span className="text-primary">OPS</span></h1>
+      <p className="text-muted-foreground text-sm">Initializing Data Center Intelligence Platform...</p>
+    </div>
+  </div>
+);
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
