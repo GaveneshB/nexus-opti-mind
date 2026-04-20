@@ -106,6 +106,13 @@ import { groqGenerate } from "./groq";
 
 /** Sends a prompt using Groq AI (replacement for Gemini). */
 export async function geminiGenerate(prompt: string): Promise<string> {
-  console.log("✓ Using Groq AI (Free)");
-  return groqGenerate(prompt);
+  try {
+    console.log("🔄 Attempting Groq AI call...");
+    const response = await groqGenerate(prompt);
+    console.log("✅ Groq AI responded successfully");
+    return response;
+  } catch (error) {
+    console.error("❌ Groq failed:", error);
+    throw new Error(`AI Generation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }

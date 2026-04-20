@@ -90,9 +90,9 @@ const CarbonDebtClock = () => {
             {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             ) : aiError ? (
-                <div className="flex items-center gap-1 bg-destructive/10 text-destructive text-[10px] px-2 py-0.5 rounded-full" title="Using Fallback Data (API Key invalid or rate limited)">
+                <div className="flex items-center gap-1 bg-destructive/10 text-destructive text-[10px] px-2 py-0.5 rounded-full" title={`API Error: ${aiError.message}`}>
                     <AlertCircle className="h-3 w-3" />
-                    <span>Mock Data</span>
+                    <span>Using Fallback (Check .env)</span>
                 </div>
             ) : (
                 <div className="flex items-center gap-1 bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full" title="Real-time Optimizer: Groq Llama 3.1 Advanced RL">
