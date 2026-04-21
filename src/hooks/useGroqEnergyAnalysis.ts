@@ -124,7 +124,7 @@ export const useGroqEnergyAnalysis = (
       const prompt = `Output ONLY valid JSON. Analyze these workloads for carbon-reducing migrations.
 Already migrated: ${migratedSummary}
 Workloads:
-${workloadSummary}`
+${workloadSummary}
 
 Respond using this exact JSON schema:
 {
