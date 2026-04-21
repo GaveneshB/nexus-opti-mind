@@ -59,21 +59,32 @@ export async function groqGenerate(prompt: string, retryCount = 0): Promise<stri
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.error?.message || response.statusText;
-      console.error("❌ Groq API Response Error:", { status: response.status, errorData });
+      let errorData = {};
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { statusText: response.statusText };
+      }
+      const errorMsg = errorData?.error?.message || errorData?.message || response.statusText;
+      console.error("❌ Groq API Response Error:", { 
+        status: response.status, 
+        statusText: response.statusText,
+        errorData,
+        headers: Object.fromEntries(response.headers.entries())
+      });
       throw new Error(`Groq API error (${response.status}): ${errorMsg}`);
     }
 
     const data = await response.json();
+    console.log("✅ Groq API response received:", { status: response.status, contentLength: JSON.stringify(data).length });
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.warn("⚠️ Groq returned empty content:", data);
+      console.error("⚠️ Groq returned empty content. Full response:", data);
       throw new Error("Groq returned an empty response");
     }
 
-    console.log("✅ Groq response received successfully");
+    console.log("✅ Groq response extracted successfully, content length:", content.length);
     return content;
   } catch (error) {
     console.error("❌ Groq Generation failed:", error);

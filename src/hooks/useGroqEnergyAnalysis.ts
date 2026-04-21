@@ -161,6 +161,7 @@ Respond using this exact JSON schema:
         const response = await groqGenerate(prompt);
         console.log("✅ [Groq] Parsing AI response...");
         const parsed = parseGroqJson<EnergyGenomeAIInsights>(response);
+        console.log("✅ [Groq] Successfully parsed AI insights:", { migrations: parsed.migrations?.length ?? 0 });
         
         // Post-process: filter out any hallucinated migrations for migrated workloads
         const migratedIds = new Set(migratedWorkloads.map(w => w.id));
@@ -171,7 +172,8 @@ Respond using this exact JSON schema:
           migrations: validMigrations,
         };
       } catch (error) {
-        console.error("❌ [Groq] Energy analysis failed:", error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error("❌ [Groq] Energy analysis failed:", errorMsg, error);
         throw error instanceof Error ? error : new Error(String(error));
       }
     },
