@@ -16,11 +16,13 @@ const MAX_RETRY_DELAY_MS = 5000; // Cap at 5 seconds
 export async function groqGenerate(prompt: string, retryCount = 0): Promise<string> {
   if (!GROQ_API_KEY) {
     console.error("❌ Groq API key missing. Add VITE_GROQ_API_KEY to .env");
+    console.error("   Available VITE_ keys:", Object.keys(import.meta.env).filter(k => k.startsWith("VITE_")));
     throw new Error("Groq API key missing. Add VITE_GROQ_API_KEY to .env");
   }
 
-  try {
-    console.log(`🚀 Groq Request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
+  console.log(`🚀 Groq Request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})... (Key: ${GROQ_API_KEY.substring(0, 10)}...)`);
+
+
     
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -60,6 +62,7 @@ export async function groqGenerate(prompt: string, retryCount = 0): Promise<stri
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const errorMsg = errorData.error?.message || response.statusText;
+      console.error("❌ Groq API Response Error:", { status: response.status, errorData });
       throw new Error(`Groq API error (${response.status}): ${errorMsg}`);
     }
 
