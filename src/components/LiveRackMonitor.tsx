@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { AlertTriangle, Zap, Thermometer } from "lucide-react";
-import { useRackMetrics } from "@/hooks/use-firebase";
+// Firebase removed - using backend API instead
+// import { useRackMetrics } from "@/hooks/use-firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LiveRackMonitorProps {
