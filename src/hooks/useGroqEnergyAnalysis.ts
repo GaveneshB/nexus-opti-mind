@@ -185,9 +185,9 @@ Respond using this exact JSON schema:
         throw error instanceof Error ? error : new Error(String(error));
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - Groq is fast, can use longer cache
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory
-    retry: 2, // Retry twice on network errors
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 15 * 60 * 1000, // 15 minutes - reduce refetch frequency to respect rate limits
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
+    retry: 3, // Retry up to 3 times on network errors
+    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 60000), // Start at 2s, cap at 60s
   });
 };
