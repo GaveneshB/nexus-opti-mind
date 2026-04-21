@@ -121,20 +121,10 @@ export const useGroqEnergyAnalysis = (
         )
         .join("\n");
 
-      const prompt = `[STRICT JSON OUTPUT ONLY - NO MARKDOWN, NO EXPLANATION]
-You are an expert data center carbon emissions analyst using Reinforcement Learning optimization. Analyze these workloads and provide strategic insights and carbon-reducing migration recommendations.
-
-CRITICAL RULES:
-1. ALREADY MIGRATED (DO NOT recommend these again): ${migratedSummary}
-2. Generate migration suggestions ONLY for the active workloads listed below.
-3. Each migration "workload" field MUST exactly match an ID from the active workloads list.
-4. Each migration must have a unique "id" field (use format "mig-{workloadId}-{timestamp}").
-5. The "savingsNum" must be a realistic CO2 reduction in kg between 3.0 and 25.0.
-6. Focus on renewable energy grid migration opportunities (Sabah Green, Hydro-Node-A, Hydro-Node-B).
-7. Output ONLY valid JSON, no markdown code blocks, no explanations.
-
-Active Workloads to Analyze:
-${workloadSummary}
+      const prompt = `Output ONLY valid JSON. Analyze these workloads for carbon-reducing migrations.
+Already migrated: ${migratedSummary}
+Workloads:
+${workloadSummary}`
 
 Respond using this exact JSON schema:
 {
@@ -185,9 +175,9 @@ Respond using this exact JSON schema:
         throw error instanceof Error ? error : new Error(String(error));
       }
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes - reduce refetch frequency to respect rate limits
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
-    retry: 3, // Retry up to 3 times on network errors
-    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 60000), // Start at 2s, cap at 60s
+    staleTime: 3 * 60 * 1000, // 3 minutes - faster updates
+    gcTime: 10 * 60 * 1000, // 10 minutes - shorter cache
+    retry: 1, // Retry only once for fast failure
+    retryDelay: (attemptIndex) => 1000, // 1 second fixed delay
   });
 };
