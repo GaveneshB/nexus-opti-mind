@@ -22,8 +22,7 @@ export async function groqGenerate(prompt: string, retryCount = 0): Promise<stri
 
   console.log(`🚀 Groq Request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})... (Key: ${GROQ_API_KEY.substring(0, 10)}...)`);
 
-
-    
+  try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
