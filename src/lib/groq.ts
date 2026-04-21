@@ -78,4 +78,3 @@ export async function groqGenerate(prompt: string, retryCount = 0): Promise<stri
     throw error;
   }
 }
-}
