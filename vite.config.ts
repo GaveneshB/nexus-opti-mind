@@ -19,4 +19,12 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
+  optimizeDeps: {
+    include: ["firebase/app", "firebase/firestore", "firebase/auth", "firebase/database", "firebase/analytics"],
+  },
 }));

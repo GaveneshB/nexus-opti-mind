@@ -7,6 +7,7 @@ const navItems = [
   { icon: CloudLightning, label: "Forecast", id: "forecast", iconClass: "icon-3d-primary" },
   { icon: Ghost, label: "Vampires", id: "vampires", iconClass: "icon-3d-destructive" },
   { icon: Dna, label: "Genome", id: "genome", iconClass: "icon-3d-primary" },
+
 ];
 
 interface SideNavProps {
