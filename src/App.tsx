@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeEnergyGenome } from "@/lib/api/config";
 import { SystemIntegration } from "@/lib/systemIntegration";
-// import { initializeVampireDatabase } from "@/lib/initVampireDatabase"; // Firebase not configured - using backend API instead
+import { initializeVampireDatabase } from "@/lib/initVampireDatabase";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -78,8 +78,15 @@ const AppContent = () => {
         SystemIntegration.emitWarning("System", "Energy Genome using fallback/mock data", { errors: initResult.errors });
       }
 
-      // Firebase not configured - using backend API for data
-      console.log("🚀 Using backend API for data (Firebase disabled)");
+      // Initialize vampire database (seed detected_vampires collection if empty)
+      console.log("🚀 Initializing vampire detection database...");
+      initializeVampireDatabase()
+        .then((result) => {
+          console.log("✅ Vampire DB initialization:", result.message);
+        })
+        .catch((err) => {
+          console.warn("⚠️ Vampire DB initialization warning:", err);
+        });
       
       console.log("✅ Initialization complete - marking as ready");
     } catch (error) {
