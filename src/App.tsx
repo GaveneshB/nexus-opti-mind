@@ -91,8 +91,10 @@ const AppContent = () => {
       console.log("✅ Initialization complete - marking as ready");
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error("❌ Initialization error:", errorMsg);
+      console.error("❌ Initialization error:", errorMsg, error);
       setError(errorMsg);
+      // Also display in window for debugging
+      (window as any).__APP_ERROR__ = errorMsg;
       return;
     }
     
