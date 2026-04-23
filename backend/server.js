@@ -24,6 +24,20 @@ const forecasts = [
   { type: "surge", severity: "high", message: "Memory pressure building across Cluster 2", action: "Migrate 2 workloads to Cluster 4 standby", eta: 31 },
 ];
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'NexusOps Backend API',
+    version: '1.0.0',
+    endpoints: [
+      'GET /api/health',
+      'GET /api/thermal-regrets',
+      'GET /api/workload-forecasts',
+      'GET /api/dashboard'
+    ]
+  });
+});
+
 // Routes
 app.get('/api/thermal-regrets', (req, res) => {
   res.json(thermalRegrets);

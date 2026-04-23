@@ -25,7 +25,7 @@ export async function groqGenerate(prompt: string, retryCount = 0): Promise<stri
   }
 
   console.log(`🚀 Groq Request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
-  console.log(`   Key: ${API_KEY.substring(0, 15)}...${API_KEY.substring(-5)}`);
+  //console.log(`   Key: ${API_KEY.substring(0, 15)}...${API_KEY.substring(-5)}`);
   console.log(`   Prompt length: ${prompt.length} chars`);
 
   try {
