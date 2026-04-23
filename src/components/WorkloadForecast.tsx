@@ -1,14 +1,39 @@
-import { motion } from "framer-motion";
-import { CloudLightning, Thermometer, Sun, AlertCircle } from "lucide-react";
-import { useWorkloadForecasts } from "@/hooks/useApi";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CloudLightning,
+  Thermometer,
+  Sun,
+  AlertCircle,
+  TrendingUp,
+  Clock,
+  Zap,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useVampireServers } from "@/hooks/use-firebase";
+import { useVampireDetector } from "@/hooks/useVampireDetector";
 
-const iconMap = {
-  surge: CloudLightning,
-  thermal: Thermometer,
-  green: Sun,
-};
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const severityGlass = {
+type ForecastSeverity = "high" | "medium" | "low";
+type ForecastType = "surge" | "thermal" | "green" | "alert" | "trending";
+
+interface Forecast {
+  id: string;
+  type: ForecastType;
+  severity: ForecastSeverity;
+  eta: number;
+  message: string;
+  action: string;
+  confidence: number;
+  wattImpact: number;
+}
+
+// ─── Style maps ───────────────────────────────────────────────────────────────
+
+const severityGlass: Record<ForecastSeverity, string> = {
   high: "glass border-destructive/20 shadow-[inset_0_0_30px_hsl(340_80%_55%/0.05)]",
   medium: "glass border-warning/20 shadow-[inset_0_0_30px_hsl(38_100%_50%/0.05)]",
   low: "glass border-accent/20 shadow-[inset_0_0_30px_hsl(155_100%_50%/0.05)]",
@@ -141,6 +166,44 @@ function generateForecasts(
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const WorkloadForecast = () => {
+  // Pull live vampire data from Firestore via the existing hook
+  const { vampires, loading: vampiresLoading } = useVampireServers();
+
+  // Pull derived metrics from the shared vampire detector state
+  const { avgPower, avgScore, totalDrain, vampireCount, firestoreConnected } =
+    useVampireDetector();
+
+  const [forecasts, setForecasts] = useState<Forecast[]>([]);
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  // Use Firestore vampire count when available, fall back to local
+  const liveVampireCount = vampires.length > 0 ? vampires.length : vampireCount;
+
+  const refreshForecasts = useCallback(() => {
+    setForecasts(
+      generateForecasts(avgPower, liveVampireCount, avgScore, totalDrain)
+    );
+    setRefreshCount((c) => c + 1);
+  }, [avgPower, liveVampireCount, avgScore, totalDrain]);
+
+  // Refresh whenever live data changes
+  useEffect(() => {
+    refreshForecasts();
+  }, [refreshForecasts]);
+
+  // Auto-refresh every 5 seconds
+  useEffect(() => {
+    const id = setInterval(refreshForecasts, 5000);
+    return () => clearInterval(id);
+  }, [refreshForecasts]);
+
+  const etaColor = (eta: number) =>
+    eta <= 5
+      ? "text-red-500"
+      : eta <= 15
+      ? "text-yellow-500"
+      : "text-muted-foreground";
+
   return (
     <div className="glass-card rounded-xl p-5 space-y-4">
       {/* Header */}
@@ -207,37 +270,79 @@ const WorkloadForecast = () => {
 
       {/* Forecast cards */}
       <div className="space-y-3">
-        {forecasts.map((f, i) => {
-          const Icon = iconMap[f.type as keyof typeof iconMap] || AlertCircle;
-          const sev = f.severity as "high" | "medium" | "low";
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.12 }}
-              className={`rounded-xl p-3 ${severityGlass[sev]}`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`${severityIcon[sev]} flex-shrink-0`}>
-                  <Icon className="h-4 w-4 text-foreground" strokeWidth={1.5} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-md font-mono ${severityBadge[sev]}`}>
-                      T−{f.eta}min
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-md uppercase ${severityBadge[sev]}`}>
-                      {f.severity}
-                    </span>
+        <AnimatePresence mode="popLayout">
+          {forecasts.map((f, i) => {
+            const Icon = iconMap[f.type] || AlertCircle;
+            const sev = f.severity;
+            return (
+              <motion.div
+                key={f.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ delay: i * 0.08 }}
+                className={`rounded-xl p-3 ${severityGlass[sev]}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`${severityIcon[sev]} flex-shrink-0 mt-0.5`}>
+                    <Icon
+                      className="h-4 w-4 text-foreground"
+                      strokeWidth={1.5}
+                    />
                   </div>
-                  <p className="text-sm text-foreground">{f.message}</p>
-                  <p className="text-xs text-primary mt-1">⚡ {f.action}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-md font-mono ${severityBadge[sev]} ${etaColor(f.eta)}`}
+                      >
+                        T−{f.eta}min
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-md uppercase font-medium ${severityBadge[sev]}`}
+                      >
+                        {f.severity}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-white/5 text-muted-foreground">
+                        {f.confidence}% conf
+                      </span>
+                      {f.wattImpact !== 0 && (
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-md font-mono ${
+                            f.wattImpact > 0
+                              ? "bg-red-500/10 text-red-400"
+                              : "bg-green-500/10 text-green-400"
+                          }`}
+                        >
+                          {f.wattImpact > 0 ? "+" : ""}
+                          {f.wattImpact}W
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-foreground leading-snug">
+                      {f.message}
+                    </p>
+                    <p className="text-xs text-primary mt-1.5 flex items-center gap-1">
+                      <Zap className="h-3 w-3 flex-shrink-0" />
+                      {f.action}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>
+          Forecasts update every 5s ·{" "}
+          {vampires.length > 0
+            ? `${vampires.length} vampire(s) in Firestore`
+            : "watching Firestore detected_vampires"}
+        </span>
+        <span className="font-mono">#{refreshCount}</span>
       </div>
     </div>
   );
