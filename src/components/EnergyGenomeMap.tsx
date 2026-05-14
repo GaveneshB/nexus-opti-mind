@@ -38,11 +38,7 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
               {workload.status}
             </span>
           )}
-          {analysis && analysis.optimization && workload.status !== "migrated" && (
-            <span className="flex items-center gap-1 text-xs text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-md animate-pulse">
-              <Sparkles className="h-3 w-3" strokeWidth={1.5} /> AI Insight
-            </span>
-          )}
+          {/* AI Insight removed */}
         </div>
         <div className="flex items-center gap-2">
           <div className="text-right">
@@ -85,39 +81,7 @@ const WorkloadCard = ({ workload, index, analysis }: { workload: GenomeWorkload;
         </div>
       )}
 
-      {/* AI Analysis Section */}
-      {analysis && workload.status !== "migrated" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="mt-3 pt-3 border-t border-border/30 space-y-2 text-xs"
-        >
-          {analysis.optimization && (
-            <div className="flex gap-2">
-              <TrendingUp className="h-3 w-3 text-yellow-400 flex-shrink-0 mt-0.5" />
-              <span className="text-muted-foreground">{analysis.optimization}</span>
-            </div>
-          )}
-          {analysis.predictedBehavior && (
-            <div className="flex gap-2">
-              <Zap className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span className="text-muted-foreground">{analysis.predictedBehavior}</span>
-            </div>
-          )}
-          {analysis.costSavingsPotential && (
-            <div className="flex gap-2">
-              <Sparkles className="h-3 w-3 text-green-400 flex-shrink-0 mt-0.5" />
-              <span className="text-green-300">{analysis.costSavingsPotential}</span>
-            </div>
-          )}
-          {analysis.riskFactors && analysis.riskFactors.length > 0 && (
-            <div className="flex gap-2">
-              <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
-              <span className="text-red-300">{analysis.riskFactors.join(", ")}</span>
-            </div>
-          )}
-        </motion.div>
-      )}
+      {/* AI Analysis Section removed */}
     </motion.div>
   );
 };
@@ -161,11 +125,7 @@ const EnergyGenomeMap = () => {
             <h2 className="font-heading font-semibold text-foreground">Energy Genome Map</h2>
             <div className="flex items-center gap-2 mt-1">
               {isRefetching && <span className="text-[10px] text-muted-foreground">Updating...</span>}
-              {aiLoading && (
-                <span className="text-[10px] text-yellow-400 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 animate-spin" /> AI analyzing...
-                </span>
-              )}
+              {/* AI Status removed */}
             </div>
           </div>
         </div>
@@ -175,14 +135,7 @@ const EnergyGenomeMap = () => {
               <Loader className="h-4 w-4 text-primary" />
             </motion.div>
           )}
-          {aiInsights && (
-            <button
-              onClick={() => setShowAIInsights(!showAIInsights)}
-              className="text-xs px-2 py-1 rounded-md bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors flex items-center gap-1"
-            >
-              <Sparkles className="h-3 w-3" /> {showAIInsights ? "Hide" : "Show"} AI Insights
-            </button>
-          )}
+          {/* AI Insights Button removed */}
         </div>
       </div>
 
@@ -207,59 +160,7 @@ const EnergyGenomeMap = () => {
         </div>
       )}
 
-      {/* AI Strategic Insights Section */}
-      {showAIInsights && aiInsights && !aiLoading && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-4 border border-yellow-500/20 space-y-3"
-        >
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-yellow-400" />
-            <h3 className="font-semibold text-yellow-200">AI Strategic Insights</h3>
-          </div>
-
-          {aiInsights.topOptimizationOpportunity && (
-            <div className="flex gap-3 bg-black/20 rounded p-2">
-              <TrendingUp className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-green-300">Top Opportunity</p>
-                <p className="text-xs text-muted-foreground">{aiInsights.topOptimizationOpportunity}</p>
-              </div>
-            </div>
-          )}
-
-          {aiInsights.predictedPeakTime && (
-            <div className="flex gap-3 bg-black/20 rounded p-2">
-              <Zap className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-blue-300">Predicted Peak Time</p>
-                <p className="text-xs text-muted-foreground">{aiInsights.predictedPeakTime}</p>
-              </div>
-            </div>
-          )}
-
-          {aiInsights.overallRecommendation && (
-            <div className="flex gap-3 bg-black/20 rounded p-2">
-              <Sparkles className="h-4 w-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-yellow-300">Recommendation</p>
-                <p className="text-xs text-muted-foreground">{aiInsights.overallRecommendation}</p>
-              </div>
-            </div>
-          )}
-
-          {aiInsights.anomaliesDetected && aiInsights.anomaliesDetected.length > 0 && (
-            <div className="flex gap-3 bg-red-500/10 rounded p-2 border border-red-500/20">
-              <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-red-300">Anomalies Detected</p>
-                <p className="text-xs text-red-200">{aiInsights.anomaliesDetected.join("; ")}</p>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      )}
+      {/* AI Strategic Insights Section removed */}
 
       {/* Workloads grid */}
       <div className="space-y-3">
@@ -307,8 +208,8 @@ const EnergyGenomeMap = () => {
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground">AI Enhanced</span>
-            <p className="font-mono text-yellow-400">{aiInsights ? "✓ Active" : "—"}</p>
+            <span className="text-muted-foreground">Status</span>
+            <p className="font-mono text-primary">Operational</p>
           </div>
         </div>
       )}

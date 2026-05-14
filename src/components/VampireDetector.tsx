@@ -111,7 +111,7 @@ const VampireDetector = () => {
               Silent Vampire Detector
             </h2>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              Isolation Forest · 10 trees · window 64
+              Real-time Anomaly Analysis
               {firestoreConnected ? (
                 <span className="flex items-center gap-0.5 text-green-500">
                   <Wifi className="h-2.5 w-2.5" /> Firestore live
@@ -298,7 +298,7 @@ const VampireDetector = () => {
                 >
                   <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-3 gap-3 text-xs">
                     <div>
-                      <div className="text-muted-foreground mb-1">Isolation Forest verdict</div>
+                      <div className="text-muted-foreground mb-1">Anomaly analysis verdict</div>
                       <div className={`font-mono font-bold ${scoreColor(rack.vampireScore)}`}>
                         {rack.vampireScore <= 40 ? "NORMAL IDLE" : rack.vampireScore <= 70 ? "SUSPICIOUS" : "VAMPIRE DETECTED"}
                       </div>

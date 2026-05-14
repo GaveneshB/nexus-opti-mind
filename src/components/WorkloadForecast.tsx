@@ -217,7 +217,7 @@ const WorkloadForecast = () => {
               Workload Weather Forecast
             </h2>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              AI predictions · live anomaly state
+              live anomaly state
               {firestoreConnected ? (
                 <span className="flex items-center gap-0.5 text-green-500">
                   <Wifi className="h-2.5 w-2.5" /> Firestore
